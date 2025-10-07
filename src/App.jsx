@@ -4,9 +4,8 @@ import "./App.css";
 
 function App() {
   // State for form inputs
-  const [jumlahPemesan, setJumlahPemesan] = useState(4);
-  const [totalSebelum, setTotalSebelum] = useState(76500);
-  const [totalSesudah, setTotalSesudah] = useState(52500);
+  const [totalSebelum, setTotalSebelum] = useState(0);
+  const [totalSesudah, setTotalSesudah] = useState(0);
   const [stepPembulatan, setStepPembulatan] = useState(100);
 
   // State for person data
@@ -18,7 +17,7 @@ function App() {
 
   // Handle adding a new person
   const handleAddPemesan = () => {
-    setPemesanList([...pemesanList, { nama: "", harga: 0 }]);
+    setPemesanList([...pemesanList, { nama: "", harga: "" }]);
   };
 
   // Handle removing a person
@@ -48,14 +47,23 @@ function App() {
 
     try {
       // Extract hargaPerOrang array from pemesanList
-      const hargaPerOrang = pemesanList.map((p) => parseFloat(p.harga) || 0);
+      const hargaPerOrang = pemesanList.map((p) => {
+        const parsed = parseFloat(p.harga);
+        return isNaN(parsed) ? 0 : parsed;
+      });
       const namaPerOrang = pemesanList.map(
         (p) => p.nama || `Pemesan ${pemesanList.indexOf(p) + 1}`
       );
 
       // Validate prices
-      for (let i = 0; i < hargaPerOrang.length; i++) {
-        if (isNaN(hargaPerOrang[i])) {
+      for (let i = 0; i < pemesanList.length; i++) {
+        const harga = pemesanList[i].harga;
+        // Check if harga is empty
+        if (harga === "") {
+          throw new Error(`Harga untuk ${namaPerOrang[i]} tidak boleh kosong`);
+        }
+        // Check if harga is a valid number
+        if (isNaN(parseFloat(harga)) || parseFloat(harga) < 0) {
           throw new Error(`Harga untuk ${namaPerOrang[i]} tidak valid`);
         }
       }
@@ -119,9 +127,8 @@ function App() {
                     required
                   />
                   <input
-                    type="number"
+                    type="text"
                     placeholder="Harga"
-                    min="0"
                     value={pemesan.harga}
                     onChange={(e) =>
                       handlePemesanChange(index, "harga", e.target.value)
@@ -147,7 +154,7 @@ function App() {
         <div className="form-group">
           <label htmlFor="totalSebelum">Total Sebelum Diskon:</label>
           <input
-            type="number"
+            type="text"
             id="totalSebelum"
             min="1"
             value={totalSebelum}
@@ -159,7 +166,7 @@ function App() {
         <div className="form-group">
           <label htmlFor="totalSesudah">Total Setelah Diskon:</label>
           <input
-            type="number"
+            type="text"
             id="totalSesudah"
             min="1"
             value={totalSesudah}
@@ -171,7 +178,7 @@ function App() {
         <div className="form-group">
           <label htmlFor="stepPembulatan">Step Pembulatan (kelipatan):</label>
           <input
-            type="number"
+            type="text"
             id="stepPembulatan"
             min="1"
             value={stepPembulatan}
@@ -225,8 +232,9 @@ function App() {
                     padding: "10px",
                   }}
                 >
-                  Total sebelum diskon: Rp
-                  {formatIDR(result.totalSebelum || totalSebelum)}
+                  Total sebelum: Rp
+                  {/* {formatIDR(result.totalSebelum || totalSebelum)} */}
+                  {totalSebelum}
                 </td>
               </tr>
             </tbody>

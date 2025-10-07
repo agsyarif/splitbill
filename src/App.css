@@ -11,11 +11,15 @@ body {
   line-height: 1.6;
   padding: 20px;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
 }
 
 .container {
   max-width: 800px;
-  margin: auto;
+  margin: 0 auto;
   background: rgba(255, 255, 255, 0.95);
   padding: 30px;
   border-radius: 15px;
