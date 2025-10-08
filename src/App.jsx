@@ -6,7 +6,7 @@ function App() {
   // State for form inputs
   const [totalSebelum, setTotalSebelum] = useState(0);
   const [totalSesudah, setTotalSesudah] = useState(0);
-  const [stepPembulatan, setStepPembulatan] = useState(100);
+  const [stepPembulatan, setStepPembulatan] = useState(1);
 
   // State for person data
   const [pemesanList, setPemesanList] = useState([]);
@@ -14,6 +14,7 @@ function App() {
   // State for results
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [showShareOptions, setShowShareOptions] = useState(false);
 
   // Handle adding a new person
   const handleAddPemesan = () => {
@@ -92,6 +93,52 @@ function App() {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  // Handle sharing
+  const handleShare = (platform) => {
+    if (!result) return;
+
+    // Create share text
+    let shareText = "Hasil Pembagian Diskon Proporsional:\n\n";
+    shareText += "Pemesan | Harga Awal | Harga Setelah Diskon\n";
+    shareText += "----------------------------------------\n";
+
+    for (let i = 0; i < result.perOrang.length; i++) {
+      shareText += `${result.namaPerOrang[i]} | Rp${formatIDR(
+        result.originalPrices[i]
+      )} | Rp${formatIDR(result.perOrang[i])}\n`;
+    }
+
+    shareText += "----------------------------------------\n";
+    shareText += `Total Sebelum Diskon: Rp${formatIDR(
+      result.originalPrices.reduce((a, b) => a + b, 0)
+    )}\n`;
+    shareText += `Total Setelah Diskon: Rp${formatIDR(result.total)}\n`;
+
+    switch (platform) {
+      case "whatsapp":
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+          shareText
+        )}`;
+        window.open(whatsappUrl, "_blank");
+        break;
+      case "instagram":
+        // For Instagram, we can't directly share text, so we'll copy to clipboard and show a message
+        navigator.clipboard.writeText(shareText);
+        alert(
+          "Teks telah disalin ke clipboard. Anda dapat membagikannya di Instagram Story atau Post."
+        );
+        break;
+      case "copy":
+        navigator.clipboard.writeText(shareText);
+        alert("Teks hasil perhitungan telah disalin ke clipboard!");
+        break;
+      default:
+        break;
+    }
+
+    setShowShareOptions(false);
   };
 
   return (
@@ -185,6 +232,16 @@ function App() {
             onChange={(e) => setStepPembulatan(Number(e.target.value))}
             required
           />
+          <small
+            style={{
+              display: "block",
+              color: "#64748b",
+              marginTop: "6px",
+              fontSize: "14px",
+            }}
+          >
+            Gunakan 1 untuk akurasi satuan Rupiah, 100 untuk pembulatan ke Rp100
+          </small>
         </div>
 
         <button type="submit">Hitung Pembagian</button>
@@ -241,6 +298,53 @@ function App() {
           </table>
           <div className="result-summary">
             Total pembayaran setelah diskon: Rp{formatIDR(result.total)}
+          </div>
+          <button
+            type="button"
+            className="share-button"
+            onClick={() => setShowShareOptions(true)}
+          >
+            Bagikan Hasil
+          </button>
+        </div>
+      )}
+
+      {/* Share Options Modal */}
+      {showShareOptions && (
+        <div className="share-modal">
+          <div className="share-modal-content">
+            <div className="share-modal-header">
+              <h3>Bagikan Hasil Perhitungan</h3>
+              <button
+                className="close-button"
+                onClick={() => setShowShareOptions(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="share-options">
+              <button
+                className="share-option whatsapp"
+                onClick={() => handleShare("whatsapp")}
+              >
+                <span className="share-icon">📱</span>
+                WhatsApp
+              </button>
+              <button
+                className="share-option instagram"
+                onClick={() => handleShare("instagram")}
+              >
+                <span className="share-icon">📸</span>
+                Instagram
+              </button>
+              <button
+                className="share-option copy"
+                onClick={() => handleShare("copy")}
+              >
+                <span className="share-icon">📋</span>
+                Salin Teks
+              </button>
+            </div>
           </div>
         </div>
       )}
